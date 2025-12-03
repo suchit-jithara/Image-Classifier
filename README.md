@@ -16,11 +16,11 @@ No model training required. Highly scalable and customizable.
 
 * Zero-training image classification
 * Custom taxonomy support (any domain: Fashion, Furniture, Electronics…)
-* All categories stored as text → CLIP text embeddings
-* Fast nearest-neighbor lookup using Qdrant
+* Text labels → CLIP text embeddings
+* Fast nearest-neighbor lookup via Qdrant
 * Clean FastAPI endpoint (`/predict`)
-* Easy deployment with Docker Compose
-* Supports millions of labels with Qdrant scalability
+* Easy deployment with Docker
+* Supports millions of labels
 
 ---
 
@@ -32,9 +32,7 @@ No model training required. Highly scalable and customizable.
 
 ### **1. Prepare Taxonomy → Labels**
 
-You define your category/subcategory structure in `taxonomy.json`.
-
-Example:
+You define category/subcategory structure in `taxonomy.json`:
 
 ```
 Fashion > Men Sports Shoes
@@ -44,11 +42,11 @@ Furniture > Sofa
 
 ### **2. Convert Labels to Text Embeddings**
 
-Each textual label is passed through CLIP **text encoder**, generating a 512-dim normalized embedding.
+Each label is encoded using CLIP’s **text encoder** → a 512-dim vector.
 
 ### **3. Store Embeddings in Qdrant**
 
-All text vectors are inserted into a Qdrant vector collection.
+All vectors are uploaded into Qdrant for fast search.
 
 ### **4. API Receives an Image**
 
@@ -56,13 +54,13 @@ User uploads an image to `/predict`.
 
 ### **5. CLIP Converts Image → Embedding**
 
-Image → CLIP Image Encoder → 512-dim embedding.
+CLIP image encoder extracts a vector representation.
 
 ### **6. Qdrant Finds Nearest Text Label**
 
-Using cosine similarity, the nearest label = best match.
+Cosine similarity returns the closest match.
 
-### **7. API Returns Category, Subcategory + Confidence**
+### **7. API Returns Category + Subcategory**
 
 Example:
 
@@ -81,20 +79,19 @@ Example:
 ```
 .
 ├── app/
-│   ├── main.py                 # FastAPI app
-│   ├── utils.py                # CLIP + Qdrant utilities
-│   └── ...
+│   ├── main.py              # FastAPI app
+│   ├── utils.py             # CLIP + Qdrant utilities
 │
 ├── scripts/
-│   ├── prepare_labels.py       # Convert taxonomy.json → labels.csv
-│   ├── ingest_embeddings.py    # Generate embeddings & upload to Qdrant
-│   └── predict_local.py        # Local testing script
+│   ├── prepare_labels.py    # Convert taxonomy.json → labels.csv
+│   ├── ingest_embeddings.py # Generate embeddings & upload to Qdrant
+│   ├── predict_local.py     # Local testing script
 │
-├── taxonomy.json               # All categories & subcategories
-├── labels.csv                  # Generated label list
-├── requirements.txt
-├── Dockerfile
+├── taxonomy.json
+├── labels.csv               # Generated after step 1
 ├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
 └── README.md
 ```
 
@@ -106,18 +103,26 @@ Example:
 
 If not installed:
 
-* [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
-* [https://docs.docker.com/compose/](https://docs.docker.com/compose/)
+* [https://docs.docker.com/get-docker](https://docs.docker.com/get-docker)
+* [https://docs.docker.com/compose](https://docs.docker.com/compose)
 
 ---
 
-# 🏗 **2. Prepare Labels (Create `labels.csv`)**
+# 🏗 **2. Prepare Labels (Generate `labels.csv`)**
+
+Run:
 
 ```
-python scripts/prepare_labels.py --taxonomy taxonomy.json --out labels.csv --add-variants
+python scripts/prepare_labels.py --add-variants
 ```
 
-This generates all labels such as:
+Verify:
+
+```
+ls -l labels.csv
+```
+
+This creates entries like:
 
 ```
 Fashion > Men Sports Shoes
@@ -125,19 +130,42 @@ Fashion > photo of Men Sports Shoes
 Fashion > Men Sports Shoes product
 ```
 
-> Adding variants helps CLIP better understand diverse phrasing.
-
 ---
 
-# 🧬 **3. Generate and Upload Embeddings to Qdrant**
+# 🧬 **3. Ingest Embeddings into Qdrant**
 
-⚠️ Make sure Qdrant is running before ingestion:
+⚠️ **IMPORTANT**
+Do **NOT** run ingestion inside the **Qdrant** container — Qdrant does **not** have Python.
+
+### ✔ Step 1 — Start Qdrant & App containers
 
 ```
-docker-compose up qdrant
+docker-compose up --build -d
 ```
 
-Then run:
+### ✔ Step 2 — Enter the app container
+
+Find container name:
+
+```
+docker ps
+```
+
+Enter:
+
+```
+docker exec -it swiftbid-clip-classifier-app-1 bash
+```
+
+### ✔ Step 3 — (Optional but recommended)
+
+```
+export PYTHONPATH=/app
+echo $PYTHONPATH
+# Output: /app
+```
+
+### ✔ Step 4 — Run embedding ingestion
 
 ```
 python scripts/ingest_embeddings.py --labels labels.csv --collection labels
@@ -145,41 +173,44 @@ python scripts/ingest_embeddings.py --labels labels.csv --collection labels
 
 This will:
 
-✔ Generate CLIP text embeddings
-✔ Create Qdrant collection
-✔ Upload all vectors
+* Load all labels
+* Generate CLIP embeddings
+* Create/update Qdrant collection
+* Upload all vectors
 
 ---
 
-# 🐳 **4. Run the Full Application with Docker Compose**
+# 🐳 **4. Run the Full Application**
 
 ```
 docker-compose up --build
 ```
 
-This starts:
+Services:
 
-1. **Qdrant** → on port `6333`
-2. **FastAPI App** → on port `8001` (mapped to internal 8000)
+| Service     | Port | Description    |
+| ----------- | ---- | -------------- |
+| Qdrant      | 6333 | Vector DB      |
+| FastAPI app | 8001 | Prediction API |
 
 ---
 
 # 🔍 **5. Test the API**
 
-### **Curl**
+### ✔ Using curl
 
 ```
 curl -X POST http://localhost:8001/predict \
   -F "file=@test.jpg"
 ```
 
-### **Python**
+### ✔ Using Python
 
 ```
 python scripts/predict_local.py test.jpg
 ```
 
-### Expected Response
+### Expected Output
 
 ```
 {
@@ -195,8 +226,7 @@ python scripts/predict_local.py test.jpg
 
 ## **GET /**
 
-Health check
-Response:
+Health check:
 
 ```
 {"status": "ok"}
@@ -204,12 +234,20 @@ Response:
 
 ## **POST /predict**
 
-Upload an image → returns category & subcategory.
-
 Form-Data:
 
 ```
 file: <image>
+```
+
+Response:
+
+```
+{
+  "category": "...",
+  "subcategory": "...",
+  "confidence": 0.87
+}
 ```
 
 ---
@@ -218,130 +256,91 @@ file: <image>
 
 ### ✔ Why CLIP?
 
-* Understands both **images and text**
-* Puts both into the **same embedding space**
-* Great zero-shot performance
+* Understands both images & text
 * No training required
+* Zero-shot prediction
+* Robust across many domains
 
 ### ✔ Why Qdrant?
 
-* Optimized for high-dimensional vector search
-* Fast cosine similarity search
-* Easy to scale horizontally
-* Production-ready
+* Optimized vector search
+* Fast cosine similarity
+* Works at scale
+* Simple & production-ready
 
-### ✔ Why Text Labels Instead of Training?
+### ✔ Why text-based classification?
 
-* Add unlimited categories instantly
-* No GPU training cost
-* No retraining required
-* Much faster iteration
-
----
-
-# ⚖️ **Pros & Cons of This Approach**
-
-## ✅ **Pros**
-
-### ⭐ 1. Zero Training Needed
-
-You don’t train any model — CLIP already understands visual concepts.
-
-### ⭐ 2. Highly Scalable
-
-Add new categories → regenerate embeddings → done.
-
-### ⭐ 3. Domain Independent
-
-Works for:
-
-* Fashion
-* Electronics
-* Furniture
-* Groceries
-* Custom datasets
-
-### ⭐ 4. Extremely Fast Inference
-
-Just:
-
-1. Generate image embedding
-2. Query nearest label
-
-### ⭐ 5. Easy Deployment
-
-Just run via Docker Compose.
-
-### ⭐ 6. Very Low Maintenance
-
-No need to maintain ML training pipelines.
+* Add unlimited categories
+* No training cost
+* No need to collect dataset
+* Iteration is instant
 
 ---
 
-## ❌ **Cons**
+# ⚖️ **Pros & Cons**
 
-### ⚠️ 1. Depends heavily on label quality
+## ✅ Pros
 
-Better label phrasing → better accuracy.
+* Zero training
+* Easy to scale
+* Robust across domains
+* Fast inference
+* Easy deployment
+* Very low maintenance
 
-### ⚠️ 2. CLIP sometimes confuses similar items
+## ❌ Cons
 
-Example:
-
-* "Cotton Shoes" vs "Sneakers"
-* "Men Shirt" vs "Men T-Shirt"
-
-Solution → Add more text variants.
-
-### ⚠️ 3. Cannot detect objects in multi-object scenes
-
-If image has 3 objects → It picks the most dominant one.
-
-Solution → Integrate YOLO for detection + CLIP for classification.
-
-### ⚠️ 4. Accuracy depends on lighting & image quality
-
-Blurry images reduce embedding quality.
+* Requires well-defined labels
+* CLIP may confuse similar items
+* Not ideal for multi-object images
+* Dependent on image quality
 
 ---
 
 # 🐞 **Troubleshooting**
 
-### ❗ Qdrant not reachable
+### ❗ Python not found
 
-Check:
+You entered Qdrant container.
+Correct:
 
 ```
-docker logs <container>
-curl http://localhost:6333
+docker exec -it swiftbid-clip-classifier-app-1 bash
 ```
 
-### ❗ Prediction inaccurate
+### ❗ Import errors
+
+Run:
+
+```
+export PYTHONPATH=/app
+```
+
+### ❗ Low accuracy
 
 Try:
 
-* Add more variants
-* Use descriptive subcategory names
-* Clean background images
-* Add “photo of …” variant
+* Add variants
+* Improve subcategory naming
+* Add descriptive labels
+* Use better images
 
 ---
 
-# 🎯 Future Improvements (Optional)
+# 🎯 Future Improvements
 
-✔ Hybrid YOLO + CLIP pipeline
-✔ Add multilingual taxonomy
-✔ Embed product descriptions
-✔ Product similarity search
-✔ Train fine-tuned CLIP (optional)
+* YOLO + CLIP hybrid pipeline
+* Multilingual labels
+* Product attribute extraction
+* Brand-level classification
+* CLIP-Large for higher accuracy
 
 ---
 
-# 🙏 **Credits**
+# 🙏 Credits
 
 * OpenAI CLIP
+* HuggingFace Transformers
 * Qdrant Vector DB
 * FastAPI
-* HuggingFace Transformers
-
----
+* Uvicorn
