@@ -1,41 +1,155 @@
 {
   "Furniture": [
     "Sofa",
+    "Recliner Sofa",
+    "L Shape Sofa",
     "Chair",
+    "Rocking Chair",
+    "Office Chair",
     "Dining Table",
+    "Coffee Table",
     "Bed",
+    "King Size Bed",
+    "Queen Size Bed",
+    "Single Bed",
     "Wardrobe",
+    "Bookshelf",
     "TV Unit",
-    "Study Table"
+    "Study Table",
+    "Shoe Rack",
+    "Dressing Table"
   ],
+
   "Electronics": [
     "Smartphone",
     "Laptop",
+    "Tablet",
+    "Smartwatch",
     "Charger",
+    "Type-C Charger",
     "Headphone",
+    "Earbuds",
     "Bluetooth Speaker",
-    "Router"
+    "Camera",
+    "Power Bank",
+    "Router",
+    "LED TV",
+    "Monitor"
   ],
+
   "Fashion": [
     "Men T-Shirt",
+    "Men Shirt",
+    "Men Jeans",
+    "Men Shorts",
+    "Men Trackpants",
+    "Men Formal Shoes",
+    "Men Sports Shoes",
+    "Men Cotton Shoes",
     "Women Kurti",
-    "Jeans",
-    "Saree",
-    "Jacket",
-    "Sports Shoes"
+    "Women Dress",
+    "Women Jeans",
+    "Women Top",
+    "Women Saree",
+    "Women Lehenga",
+    "Women Heels",
+    "Women Sports Shoes",
+    "Kids T-Shirt",
+    "Kids Frock",
+    "Kids Shoes",
+    "Caps & Hats",
+    "Belts",
+    "Sunglasses",
+    "Hoodie",
+    "Jacket"
   ],
+
+  "Footwear": [
+    "Sports Shoes",
+    "Running Shoes",
+    "Walking Shoes",
+    "Cotton Shoes",
+    "Sneakers",
+    "Canvas Shoes",
+    "Formal Shoes",
+    "Sandals",
+    "Slippers",
+    "Loafers",
+    "Boots",
+    "Ethnic Footwear"
+  ],
+
   "Home & Kitchen": [
     "Pressure Cooker",
     "Mixer Grinder",
     "Gas Stove",
+    "Induction Cooktop",
     "Cookware Set",
-    "Dinner Set"
+    "Dinner Set",
+    "Kettle",
+    "Water Purifier",
+    "Vacuum Cleaner",
+    "Air Fryer",
+    "Toaster",
+    "Microwave Oven"
   ],
+
   "Beauty & Personal Care": [
     "Face Wash",
     "Shampoo",
     "Hair Oil",
+    "Conditioner",
     "Moisturizer",
-    "Perfume"
+    "Perfume",
+    "Face Cream",
+    "Sunscreen",
+    "Beard Oil",
+    "Lipstick",
+    "Kajal",
+    "Body Lotion"
+  ],
+
+  "Grocery & Food": [
+    "Rice",
+    "Wheat Flour",
+    "Sugar",
+    "Salt",
+    "Cooking Oil",
+    "Masala Powder",
+    "Pulses",
+    "Dry Fruits",
+    "Snacks",
+    "Tea",
+    "Coffee"
+  ],
+
+  "Sports & Fitness": [
+    "Cricket Bat",
+    "Football",
+    "Badminton Racket",
+    "Yoga Mat",
+    "Dumbbells",
+    "Skateboard",
+    "Gym Gloves",
+    "Sports Bag"
+  ],
+
+  "Automotive": [
+    "Bike Cover",
+    "Car Cover",
+    "Helmet",
+    "Tyre Inflator",
+    "Car Vacuum Cleaner",
+    "Car Charger",
+    "Seat Cover"
+  ],
+
+  "Toys & Baby": [
+    "Soft Toys",
+    "Baby Diapers",
+    "Baby Feeding Bottle",
+    "Building Blocks",
+    "Remote Car",
+    "Baby Clothes"
   ]
 }

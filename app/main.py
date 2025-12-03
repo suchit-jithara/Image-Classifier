@@ -1,8 +1,5 @@
-# app/main.py
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from app.utils import image_to_embedding, qdrant_client
-import numpy as np
-from pydantic import BaseModel
 import io
 from PIL import Image
 import os
@@ -13,40 +10,39 @@ QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 COLLECTION_NAME = "labels"
 TOP_K = 5
 
+
+# ---------------------------
+# CLEANING FUNCTION (IMPORTANT)
+# ---------------------------
+def clean_subcategory(raw: str) -> str:
+    if not raw:
+        return raw
+
+    text = raw.lower()
+
+    # remove unwanted phrases
+    replacements = [
+        "photo of",
+        "product",
+        "- fashion",
+        "fashion",
+    ]
+    for r in replacements:
+        text = text.replace(r, "")
+
+    text = text.replace(">", "")
+    text = text.replace("-", " ")
+
+    # remove extra spaces
+    text = " ".join(text.split())
+
+    return text.title()
+
+
 @app.get("/")
 async def root():
     return {"status": "ok"}
 
-# @app.post("/predict")
-# async def predict(file: UploadFile = File(...), top_k: int = TOP_K):
-#     # read image bytes
-#     data = await file.read()
-#     try:
-#         image = Image.open(io.BytesIO(data)).convert("RGB")
-#     except Exception:
-#         raise HTTPException(status_code=400, detail="Invalid image")
-
-#     # temporary save to compute embedding using utils method
-#     tmp_path = "/tmp/tmp_input.jpg"
-#     image.save(tmp_path)
-#     emb = image_to_embedding(tmp_path)
-#     # query qdrant
-#     client = qdrant_client(QDRANT_URL)
-#     hits = client.search(collection_name=COLLECTION_NAME, query_vector=emb.tolist(), top=top_k)
-#     results = []
-#     for h in hits:
-#         payload = h.payload or {}
-#         label = payload.get("label")
-#         score = float(h.score) if hasattr(h, "score") else None
-#         # split Category > Subcategory
-#         cat = None
-#         subcat = None
-#         if label and ">" in label:
-#             cat, subcat = [s.strip() for s in label.split(">", 1)]
-#         else:
-#             subcat = label
-#         results.append({"label": label, "category": cat, "subcategory": subcat, "score": score})
-#     return {"predictions": results}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...), top_k: int = TOP_K):
@@ -62,7 +58,6 @@ async def predict(file: UploadFile = File(...), top_k: int = TOP_K):
 
     client = qdrant_client(QDRANT_URL)
 
-    # NEW API — qdrant >= 1.4
     result = client.query_points(
         collection_name=COLLECTION_NAME,
         query=emb.tolist(),
@@ -77,18 +72,24 @@ async def predict(file: UploadFile = File(...), top_k: int = TOP_K):
         label = payload.get("label")
         score = float(h.score)
 
-        cat = None
-        subcat = None
         if label and ">" in label:
-            cat, subcat = [s.strip() for s in label.split(">", 1)]
+            category, subraw = [s.strip() for s in label.split(">", 1)]
+            subcategory = clean_subcategory(subraw)
         else:
-            subcat = label
+            category = None
+            subcategory = clean_subcategory(label)
 
         results.append({
-            "label": label,
-            "category": cat,
-            "subcategory": subcat,
+            "category": category,
+            "subcategory": subcategory,
             "score": score
         })
 
-    return {"predictions": results}
+    # select best result
+    best = max(results, key=lambda x: x["score"])
+
+    return {
+        "category": best["category"],
+        "subcategory": best["subcategory"],
+        "confidence": best["score"]
+    }
