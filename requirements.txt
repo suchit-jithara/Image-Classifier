@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+torch
+transformers
+pillow
+numpy
+qdrant-client
+aiofiles
+python-multipart
+tqdm
+scikit-learn

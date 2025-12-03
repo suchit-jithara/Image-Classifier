@@ -1,0 +1,41 @@
+{
+  "Furniture": [
+    "Sofa",
+    "Chair",
+    "Dining Table",
+    "Bed",
+    "Wardrobe",
+    "TV Unit",
+    "Study Table"
+  ],
+  "Electronics": [
+    "Smartphone",
+    "Laptop",
+    "Charger",
+    "Headphone",
+    "Bluetooth Speaker",
+    "Router"
+  ],
+  "Fashion": [
+    "Men T-Shirt",
+    "Women Kurti",
+    "Jeans",
+    "Saree",
+    "Jacket",
+    "Sports Shoes"
+  ],
+  "Home & Kitchen": [
+    "Pressure Cooker",
+    "Mixer Grinder",
+    "Gas Stove",
+    "Cookware Set",
+    "Dinner Set"
+  ],
+  "Beauty & Personal Care": [
+    "Face Wash",
+    "Shampoo",
+    "Hair Oil",
+    "Moisturizer",
+    "Perfume"
+  ]
+}
