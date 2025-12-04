@@ -110,6 +110,26 @@ If not installed:
 
 # 🏗 **2. Prepare Labels (Generate `labels.csv`)**
 
+### ✔ Step 1 — Start Qdrant & App containers
+
+```
+docker-compose up --build -d
+```
+
+### ✔ Step 2 — Enter the app container
+
+Find container name:
+
+```
+docker ps
+```
+
+Enter:
+
+```
+docker exec -it swiftbid-clip-classifier-app-1 bash
+```
+
 Run:
 
 ```

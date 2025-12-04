@@ -26,6 +26,7 @@ def clean_subcategory(raw: str) -> str:
         "product",
         "- fashion",
         "fashion",
+        "Grocery & Food",
     ]
     for r in replacements:
         text = text.replace(r, "")
